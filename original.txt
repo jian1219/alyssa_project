@@ -1,0 +1,343 @@
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Home, Compass, Calendar, Info, User, Star, MapPin, ChevronLeft, Waves, Palmtree, Clock, ShieldCheck, Camera, ChevronRight } from 'lucide-react';
+
+export default function App() {
+  const [activeTab, setActiveTab] = useState('home');
+
+  const renderPage = () => {
+    return (
+      <motion.div
+        key={activeTab}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.3 }}
+      >
+        {(() => {
+          switch (activeTab) {
+            case 'home': return <HomeView />;
+            case 'explore': return <ExploreView />;
+            case 'booking': return <BookingView />;
+            case 'info': return <InfoView />;
+            case 'profile': return <ProfileView />;
+            default: return <HomeView />;
+          }
+        })()}
+      </motion.div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F8FAF8] font-sans pb-24 text-slate-900">
+      <header className="bg-white/90 backdrop-blur-md px-6 py-4 sticky top-0 z-40 border-b border-emerald-50 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <motion.div whileHover={{ rotate: 15 }} className="bg-emerald-500 p-1.5 rounded-xl shadow-lg shadow-emerald-200">
+            <Palmtree size={18} className="text-white" />
+          </motion.div>
+          <h1 className="text-lg font-black text-emerald-950 tracking-tighter uppercase">SiargaoGo</h1>
+        </div>
+        <div className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full uppercase">Surfers Paradise</div>
+      </header>
+
+      <main>
+        <AnimatePresence mode="wait">
+          {renderPage()}
+        </AnimatePresence>
+      </main>
+
+      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-emerald-50 px-2 py-3 flex justify-around items-center z-50 shadow-[0_-10px_30px_rgba(0,0,0,0.05)]">
+        <NavItem active={activeTab === 'home'} onClick={() => setActiveTab('home')} icon={<Home />} label="Home" />
+        <NavItem active={activeTab === 'explore'} onClick={() => setActiveTab('explore')} icon={<Compass />} label="Explore" />
+        <NavItem active={activeTab === 'booking'} onClick={() => setActiveTab('booking')} icon={<Calendar />} label="Book" />
+        <NavItem active={activeTab === 'info'} onClick={() => setActiveTab('info')} icon={<Info />} label="Info" />
+        <NavItem active={activeTab === 'profile'} onClick={() => setActiveTab('profile')} icon={<User />} label="Profile" />
+      </nav>
+    </div>
+  );
+}
+
+const HomeView = () => {
+  const [selectedSpot, setSelectedSpot] = useState(null);
+
+  const spotData = {
+    'Cloud 9': {
+      tag: 'Surfing',
+      desc: 'The legendary hollow peak of Siargao.',
+      fullInfo: 'Cloud 9 is world-famous for its thick, hollow tubes. It hosts the annual Siargao Surfing Cup. The boardwalk is an iconic landmark perfect for sunsets.',
+      bestTime: 'High Tide',
+      difficulty: 'Expert',
+      amenities: ['Viewing Deck', 'Surf Rentals', 'Cafes']
+    },
+    'Coconut View': {
+      tag: 'Sightseeing',
+      desc: 'A breathtaking sea of palm trees from the roadside.',
+      fullInfo: 'Known as the "Top View," this spot offers a panoramic look at thousands of coconut trees stretching toward the horizon. It is a must-stop for photos when heading North.',
+      bestTime: 'Sunrise',
+      difficulty: 'Easy',
+      amenities: ['Photo Spot', 'Roadside Parking', 'Local Vendors']
+    },
+    'Pacifico': {
+      tag: 'Northern Surf',
+      desc: 'Quiet, long left-hand waves for a peaceful surf session.',
+      fullInfo: 'Located in the North, Pacifico offers a much more relaxed vibe than General Luna. The waves are powerful and long, ideal for those who want to escape the crowds.',
+      bestTime: 'Mid-Tide',
+      difficulty: 'Advanced',
+      amenities: ['Quiet Beach', 'Surf Camps', 'Local Eateries']
+    },
+    'Sugba Lagoon': {
+      tag: 'Adventure',
+      desc: 'Turquoise waters hidden within limestone hills.',
+      fullInfo: 'A vast sanctuary where you can paddleboard, kayak, and jump off the famous diving board. Surrounded by mangroves and limestone mountains.',
+      bestTime: 'Morning',
+      difficulty: 'Easy',
+      amenities: ['Kayak Rental', 'Diving Board', 'Tour Boat']
+    }
+  };
+
+  return (
+    <div className="p-6">
+      {/* Animated Hero Card */}
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="relative h-56 bg-gradient-to-br from-emerald-600 to-teal-700 rounded-[2rem] p-6 text-white overflow-hidden shadow-xl"
+      >
+        <div className="relative z-10">
+          <span className="text-[10px] font-bold bg-white/20 px-2 py-1 rounded-lg backdrop-blur-md uppercase">Destination</span>
+          <h2 className="text-3xl font-black leading-tight mt-2">Ride the <br/>Pacific Swell.</h2>
+          <p className="text-emerald-50 text-xs mt-2 max-w-[180px]">Your ultimate guide to the surfing capital of the Philippines.</p>
+        </div>
+        <motion.div
+          animate={{ y: [0, -15, 0], rotate: [12, 15, 12] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute -right-8 -bottom-8 w-40 h-40 text-white/10"
+        >
+          <Waves size={160} />
+        </motion.div>
+      </motion.div>
+
+      <div className="mt-10">
+        <h3 className="font-black text-emerald-950 text-lg mb-4">Must Visit</h3>
+        <div className="flex gap-5 overflow-x-auto pb-6 scrollbar-hide">
+          {Object.keys(spotData).map((name, i) => (
+            <motion.div 
+              key={name}
+              initial={{ x: 50, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: i * 0.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setSelectedSpot({ name, ...spotData[name] })}
+              className="min-w-[200px] cursor-pointer bg-white rounded-3xl shadow-sm border border-emerald-50 overflow-hidden active:bg-emerald-50 transition-colors"
+            >
+              <div className="h-32 bg-emerald-50 flex items-center justify-center text-emerald-300">
+                {name === 'Coconut View' ? <Palmtree size={40} /> : <Waves size={40} />}
+              </div>
+              <div className="p-4">
+                <p className="font-black text-sm text-slate-800">{name}</p>
+                <div className="mt-2 inline-block px-2 py-0.5 bg-slate-50 rounded text-[9px] font-bold text-slate-500">{spotData[name].tag}</div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* FULL SCREEN DETAIL VIEW */}
+      <AnimatePresence>
+        {selectedSpot && (
+          <motion.div 
+            initial={{ y: "100%" }} 
+            animate={{ y: 0 }} 
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            className="fixed inset-0 z-[100] bg-white overflow-y-auto"
+          >
+            <div className="sticky top-0 p-6 flex justify-between items-center bg-white/90 backdrop-blur-md z-10">
+              <motion.button 
+                whileTap={{ scale: 0.85 }}
+                onClick={() => setSelectedSpot(null)} 
+                className="p-3 bg-slate-100 rounded-2xl text-slate-800"
+              >
+                <ChevronLeft size={24} />
+              </motion.button>
+              <h4 className="font-black text-emerald-950 uppercase text-xs tracking-widest font-sans">Details</h4>
+              <div className="w-12 h-12" /> 
+            </div>
+
+            <div className="px-6 pb-12">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="h-64 bg-emerald-600 rounded-[2.5rem] mb-8 flex items-center justify-center text-white/20"
+              >
+                {selectedSpot.name === 'Coconut View' ? <Palmtree size={100} /> : <Waves size={100} />}
+              </motion.div>
+
+              <h2 className="text-4xl font-black text-emerald-950 tracking-tighter">{selectedSpot.name}</h2>
+              <p className="text-emerald-500 font-black uppercase text-xs mt-1 tracking-widest">{selectedSpot.tag}</p>
+
+              <div className="grid grid-cols-2 gap-4 my-8">
+                <div className="p-4 bg-emerald-50 rounded-2xl">
+                  <Clock className="text-emerald-600 mb-1" size={18} />
+                  <p className="text-[10px] font-bold text-emerald-600 uppercase">Best Time</p>
+                  <p className="text-xs font-black text-emerald-900">{selectedSpot.bestTime}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-2xl">
+                  <ShieldCheck className="text-slate-400 mb-1" size={18} />
+                  <p className="text-[10px] font-bold text-slate-400 uppercase">Difficulty</p>
+                  <p className="text-xs font-black text-slate-700">{selectedSpot.difficulty}</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <h5 className="font-black text-emerald-950 text-lg mb-2 underline decoration-emerald-200 underline-offset-4">Overview</h5>
+                  <p className="text-slate-500 text-sm leading-relaxed font-medium">{selectedSpot.fullInfo}</p>
+                </div>
+                <div>
+                  <h5 className="font-black text-emerald-950 text-lg mb-3">Highlights</h5>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedSpot.amenities.map(item => (
+                      <span key={item} className="px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-xl text-[11px] font-bold text-emerald-700">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <motion.button 
+                whileTap={{ scale: 0.95 }}
+                className="w-full mt-10 py-5 bg-emerald-950 text-white rounded-[2rem] font-black shadow-xl shadow-emerald-900/20"
+              >
+                Show More Info
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+
+// 2. EXPLORE PAGE
+const ExploreView = () => (
+  <div className="p-6">
+    <div className="relative mb-8">
+      <input type="text" placeholder="Search surf spots, bars..." className="w-full p-4 pl-12 bg-white rounded-2xl border border-emerald-50 shadow-sm text-sm focus:outline-none" />
+      <Compass className="absolute left-4 top-4 text-emerald-500" size={20} />
+    </div>
+    <div className="space-y-5">
+      {[
+        { title: 'Guyam Island', desc: 'Miniature tropical paradise.', rating: '4.9' },
+        { title: 'Daku Island', desc: 'Largest of the three islands.', rating: '4.8' }
+      ].map((item, i) => (
+        <motion.div 
+          key={item.title}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.1 }}
+          className="bg-white rounded-3xl overflow-hidden shadow-sm flex border border-emerald-50"
+        >
+          <div className="w-28 bg-emerald-50 flex items-center justify-center text-emerald-200">
+             <Waves size={24} />
+          </div>
+          <div className="p-5 flex-1">
+            <h4 className="font-black text-emerald-950 text-base">{item.title}</h4>
+            <p className="text-[11px] text-slate-400 mt-1">{item.desc}</p>
+            <div className="flex items-center gap-1 mt-3">
+              <Star size={10} fill="#10b981" className="text-emerald-500" />
+              <span className="text-[10px] font-black text-emerald-700">{item.rating}</span>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  </div>
+);
+
+// 3. BOOKING PAGE
+const BookingView = () => (
+  <div className="p-6 text-center py-24 flex flex-col items-center">
+    <motion.div 
+      initial={{ scale: 0 }} 
+      animate={{ scale: 1 }} 
+      className="w-24 h-24 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-500 mb-6 border border-emerald-100"
+    >
+      <Calendar size={36} />
+    </motion.div>
+    <h3 className="text-2xl font-black text-emerald-950">Island Services</h3>
+    <div className="w-full space-y-3 mt-10">
+        <motion.button whileTap={{ scale: 0.98 }} className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black shadow-lg">Rent Surfboard</motion.button>
+    </div>
+  </div>
+);
+
+// 4. INFO PAGE
+const InfoView = () => (
+  <div className="p-6 space-y-4">
+    <h3 className="font-black text-emerald-950 text-2xl mb-6">Siargao Essentials</h3>
+    {[
+      { title: 'Surf Report', status: 'Moderate Swell', icon: <Waves size={16}/> },
+      { title: 'Tide Times', status: 'High at 2:00 PM', icon: <Waves size={16}/> }
+    ].map((item, i) => (
+      <motion.div 
+        key={item.title} 
+        initial={{ opacity: 0, x: -10 }} 
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: i * 0.1 }}
+        className="p-5 bg-white rounded-3xl border border-emerald-50 flex justify-between items-center shadow-sm"
+      >
+        <div className="flex items-center gap-4">
+            <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600">{item.icon}</div>
+            <div>
+              <p className="text-[10px] font-black text-slate-400 uppercase">{item.title}</p>
+              <p className="text-sm font-black text-emerald-600">{item.status}</p>
+            </div>
+        </div>
+        <ChevronRight size={18} className="text-emerald-100" />
+      </motion.div>
+    ))}
+  </div>
+);
+
+// 5. PROFILE PAGE
+const ProfileView = () => (
+  <div className="p-6 space-y-8">
+    <div className="flex flex-col items-center">
+      <motion.div 
+        whileHover={{ rotate: 0 }}
+        initial={{ rotate: 10, scale: 0.8 }}
+        animate={{ rotate: 6, scale: 1 }}
+        className="w-28 h-28 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-[2.5rem] flex items-center justify-center text-white border-4 border-white shadow-xl"
+      >
+        <User size={48} strokeWidth={1.5} />
+      </motion.div>
+      <h3 className="font-black text-2xl text-emerald-950 mt-6">Island Hopper</h3>
+    </div>
+    <div className="grid grid-cols-2 gap-4">
+      <div className="bg-emerald-600 p-6 rounded-[2rem] text-white">
+        <p className="text-[10px] font-bold opacity-70 uppercase">Saved Waves</p>
+        <p className="text-2xl font-black">08</p>
+      </div>
+      <div className="bg-white p-6 rounded-[2rem] border border-emerald-50 shadow-sm">
+        <p className="text-[10px] font-black text-slate-400 uppercase">Rewards</p>
+        <p className="text-2xl font-black text-emerald-900">450 <span className="text-xs">pts</span></p>
+      </div>
+    </div>
+  </div>
+);
+
+// NAVIGATION HELPER
+function NavItem({ active, onClick, icon, label }) {
+  return (
+    <button onClick={onClick} className={`flex flex-col items-center gap-1 flex-1 relative ${active ? 'text-emerald-600' : 'text-slate-300'}`}>
+      <motion.div animate={active ? { y: -8, scale: 1.1 } : { y: 0, scale: 1 }}>
+        {React.cloneElement(icon, { size: 20, strokeWidth: active ? 2.5 : 2 })}
+      </motion.div>
+      {!active && <span className="text-[9px] font-black uppercase opacity-70">{label}</span>}
+      {active && <motion.div layoutId="dot" className="w-1.5 h-1.5 bg-emerald-600 rounded-full mt-0.5" />}
+    </button>
+  );
+}
