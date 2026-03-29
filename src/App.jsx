@@ -529,21 +529,86 @@ const ExploreView = ({ onBook }) => {
 };
 
 // 3. BOOKING PAGE
-const BookingView = () => (
-  <div className="p-6 text-center py-24 flex flex-col items-center">
-    <motion.div 
-      initial={{ scale: 0 }} 
-      animate={{ scale: 1 }} 
-      className="w-24 h-24 bg-emerald-50 rounded-[2rem] flex items-center justify-center text-emerald-500 mb-6 border border-emerald-100"
-    >
-      <Calendar size={36} />
-    </motion.div>
-    <h3 className="text-2xl font-black text-emerald-950">Island Services</h3>
-    <div className="w-full space-y-3 mt-10">
-        <motion.button whileTap={{ scale: 0.98 }} className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black shadow-lg">Rent Surfboard</motion.button>
+const BookingView = () => {
+  const [showMaintenance, setShowMaintenance] = useState(false);
+
+  // The services you want to display
+  const services = [
+    { name: 'Rent Surfboard', icon: <Waves size={18} /> },
+    { name: 'Hire Surf Instructor', icon: <User size={18} /> },
+    { name: 'Airport Shuttle', icon: <Compass size={18} /> },
+    { name: 'Island Boat Tour', icon: <Palmtree size={18} /> }
+  ];
+
+  return (
+    <div className="p-6 min-h-[70vh] flex flex-col items-center justify-center">
+      <motion.div 
+        initial={{ scale: 0 }} 
+        animate={{ scale: 1 }} 
+        className="w-24 h-24 bg-emerald-50 rounded-[3rem] flex items-center justify-center text-emerald-500 mb-6 border border-emerald-100 shadow-inner"
+      >
+        <Calendar size={36} />
+      </motion.div>
+
+      <div className="text-center mb-10">
+        <h3 className="text-2xl font-black text-emerald-950">Island Services</h3>
+        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Book your gear & transport</p>
+      </div>
+
+      {/* SERVICE BUTTONS */}
+      <div className="w-full space-y-3">
+        {services.map((service, index) => (
+          <motion.button 
+            key={index}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowMaintenance(true)} // TRIGGER THE MESSAGE
+            className="w-full p-5 bg-white border border-emerald-50 rounded-2xl flex items-center justify-between shadow-sm hover:border-emerald-200 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+                {service.icon}
+              </div>
+              <span className="font-black text-sm text-emerald-950">{service.name}</span>
+            </div>
+            <ChevronRight size={16} className="text-slate-300" />
+          </motion.button>
+        ))}
+      </div>
+
+      {/* UNDER MAINTENANCE OVERLAY */}
+      <AnimatePresence>
+        {showMaintenance && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] bg-emerald-950/80 backdrop-blur-sm flex items-center justify-center p-6"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-white rounded-[2.5rem] p-8 w-full max-w-xs text-center shadow-2xl"
+            >
+              <div className="w-20 h-20 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Clock size={40} />
+              </div>
+              <h4 className="font-black text-xl text-emerald-950">Under Maintenance</h4>
+              <p className="text-sm text-slate-500 mt-3 leading-relaxed">
+                We're currently updating our booking system to serve you better. Check back soon!
+              </p>
+              <button 
+                onClick={() => setShowMaintenance(false)}
+                className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-black mt-8 shadow-lg shadow-emerald-200"
+              >
+                Got it!
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
-  </div>
-);
+  );
+};
 
 // 4. INFO PAGE
 const InfoView = () => (
