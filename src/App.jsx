@@ -99,24 +99,25 @@ export default function App() {
         {(() => {
           switch (activeTab) {
             case 'home': return <HomeView onBook={handleBook} />;
-            case 'explore': return <ExploreView />;
+            case 'explore': 
+              return <ExploreView onBook={handleBook} />;
             case 'booking': return <BookingView />;
             case 'info': return <InfoView />;
             case 'profile': 
-            return (
-              <ProfileView 
-                isLoggedIn={isLoggedIn} 
-                setIsLoggedIn={setIsLoggedIn}
-                isLoginView={isLoginView}
-                setIsLoginView={setIsLoginView}
-                formData={formData}
-                handleInput={handleInput}
-                handleAuth={handleAuth}
-                error={error}
-                bookings={bookings} // Also ensure bookings are passed here
-              />
-            );
-          default: return <HomeView onBook={handleBook} />;
+              return (
+                <ProfileView 
+                  isLoggedIn={isLoggedIn} 
+                  setIsLoggedIn={setIsLoggedIn}
+                  isLoginView={isLoginView}
+                  setIsLoginView={setIsLoginView}
+                  formData={formData}
+                  handleInput={handleInput}
+                  handleAuth={handleAuth}
+                  error={error}
+                  bookings={bookings} // Also ensure bookings are passed here
+                />
+              );
+            default: return <HomeView onBook={handleBook} />;
           }
         })()}
       </motion.div>
@@ -152,7 +153,7 @@ export default function App() {
   );
 }
 
-// 1. EXPLORE PAGE
+// 1. HOME PAGE
 const HomeView = ({ onBook }) => {
   const [selectedSpot, setSelectedSpot] = useState(null);
   const [newReview, setNewReview] = useState('');
@@ -391,40 +392,141 @@ const HomeView = ({ onBook }) => {
 
 
 // 2. EXPLORE PAGE
-const ExploreView = () => (
-  <div className="p-6">
-    <div className="relative mb-8">
-      <input type="text" placeholder="Search surf spots, bars..." className="w-full p-4 pl-12 bg-white rounded-2xl border border-emerald-50 shadow-sm text-sm focus:outline-none" />
-      <Compass className="absolute left-4 top-4 text-emerald-500" size={20} />
-    </div>
-    <div className="space-y-5">
-      {[
-        { title: 'Guyam Island', desc: 'Miniature tropical paradise.', rating: '4.9' },
-        { title: 'Daku Island', desc: 'Largest of the three islands.', rating: '4.8' }
-      ].map((item, i) => (
-        <motion.div 
-          key={item.title}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.1 }}
-          className="bg-white rounded-3xl overflow-hidden shadow-sm flex border border-emerald-50"
-        >
-          <div className="w-28 bg-emerald-50 flex items-center justify-center text-emerald-200">
-             <Waves size={24} />
-          </div>
-          <div className="p-5 flex-1">
-            <h4 className="font-black text-emerald-950 text-base">{item.title}</h4>
-            <p className="text-[11px] text-slate-400 mt-1">{item.desc}</p>
-            <div className="flex items-center gap-1 mt-3">
-              <Star size={10} fill="#10b981" className="text-emerald-500" />
-              <span className="text-[10px] font-black text-emerald-700">{item.rating}</span>
+const ExploreView = ({ onBook }) => {
+  const [activeFilter, setActiveFilter] = useState('All');
+  const [selectedExploreSpot, setSelectedExploreSpot] = useState(null);
+
+  const exploreSpots = [
+    { 
+      title: 'Guyam Island', 
+      category: 'Islands', 
+      desc: 'Miniature tropical paradise.', 
+      fullInfo: 'Guyam is a tiny teardrop-shaped island surrounded by a vast coral reef. It is a staple of the Siargao island-hopping experience.',
+      rating: '4.9', 
+      icon: <Waves size={20}/>,
+      coordinates: [9.7825, 126.1558]
+    },
+    { 
+      title: 'Shaka Bowls', 
+      category: 'Cafe', 
+      desc: 'Famous smoothie bowls and coffee.', 
+      fullInfo: 'The ultimate breakfast spot in Siargao. Known for healthy, colorful acai bowls and a perfect view of the Cloud 9 surf break.',
+      rating: '4.7', 
+      icon: <Palmtree size={20}/>,
+      coordinates: [9.8115, 126.1620]
+    },
+    { 
+      title: 'Barrel Bar', 
+      category: 'Bar', 
+      desc: 'Best nightlife and drinks in GL.', 
+      fullInfo: 'A legendary spot for travelers to meet. Famous for its "Barrel" drinks and lively atmosphere every night of the week.',
+      rating: '4.6', 
+      icon: <Star size={20}/>,
+      coordinates: [9.8088, 126.1601]
+    },
+    { 
+      title: 'Kermit Siargao', 
+      category: 'Cafe', 
+      desc: 'Authentic Italian pizza and vibe.', 
+      fullInfo: 'Rated as one of the best Italian restaurants in the world by Conde Nast. A must-visit for pizza lovers staying in General Luna.',
+      rating: '4.9', 
+      icon: <Palmtree size={20}/>,
+      coordinates: [9.8050, 126.1580]
+    }
+  ];
+
+  const categories = ['All', 'Islands', 'Cafe', 'Bar'];
+
+  const filteredSpots = activeFilter === 'All' 
+    ? exploreSpots 
+    : exploreSpots.filter(spot => spot.category === activeFilter);
+
+  return (
+    <div className="p-6">
+      {/* 1. Header & Filter Logic */}
+      <div className="relative mb-6">
+        <input type="text" placeholder="Search Siargao..." className="w-full p-4 pl-12 bg-white rounded-2xl border border-emerald-50 shadow-sm text-sm outline-none" />
+        <Compass className="absolute left-4 top-4 text-emerald-500" size={20} />
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto pb-6 scrollbar-hide">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveFilter(cat)}
+            className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+              activeFilter === cat ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white text-slate-400 border border-emerald-50'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* 2. Grid of Clickable Cards */}
+      <div className="space-y-4">
+        {filteredSpots.map((item) => (
+          <motion.div 
+            key={item.title}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setSelectedExploreSpot(item)} // OPEN MODAL
+            className="bg-white rounded-3xl overflow-hidden shadow-sm flex border border-emerald-50 cursor-pointer"
+          >
+            <div className={`w-24 flex items-center justify-center ${item.category === 'Cafe' ? 'bg-orange-50 text-orange-400' : 'bg-emerald-50 text-emerald-400'}`}>
+               {item.icon}
             </div>
-          </div>
-        </motion.div>
-      ))}
+            <div className="p-5 flex-1">
+              <h4 className="font-black text-emerald-950 text-base">{item.title}</h4>
+              <p className="text-[11px] text-slate-400 mt-1">{item.desc}</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* 3. Detail & Reserve Modal */}
+      <AnimatePresence>
+        {selectedExploreSpot && (
+          <motion.div 
+            initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+            className="fixed inset-0 z-[100] bg-white overflow-y-auto p-6"
+          >
+            <div className="flex justify-between items-center mb-8">
+              <button onClick={() => setSelectedExploreSpot(null)} className="p-3 bg-slate-100 rounded-2xl"><ChevronLeft size={24}/></button>
+              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">{selectedExploreSpot.category}</span>
+              <div className="w-10"/>
+            </div>
+
+            <h2 className="text-4xl font-black text-emerald-950 tracking-tighter">{selectedExploreSpot.title}</h2>
+            <div className="flex items-center gap-2 mt-4">
+               <Star size={14} fill="#10b981" className="text-emerald-500" />
+               <span className="font-black text-emerald-700">{selectedExploreSpot.rating} Rating</span>
+            </div>
+
+            <p className="text-slate-500 text-sm mt-6 leading-relaxed">
+              {selectedExploreSpot.fullInfo}
+            </p>
+
+            <div className="mt-10 p-6 bg-emerald-50 rounded-[2.5rem]">
+              <h5 className="font-black text-emerald-900 text-sm uppercase">Quick Reservation</h5>
+              <p className="text-[11px] text-emerald-600 mt-1 italic">*Reserved spots are recorded in your Profile dashboard.</p>
+              
+              <motion.button 
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  onBook(selectedExploreSpot.title); // RECORD DATA
+                  setSelectedExploreSpot(null); // CLOSE MODAL
+                }}
+                className="w-full py-5 bg-emerald-950 text-white rounded-[2rem] font-black shadow-xl mt-6"
+              >
+                Confirm Reservation
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
-  </div>
-);
+  );
+};
 
 // 3. BOOKING PAGE
 const BookingView = () => (
