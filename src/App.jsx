@@ -1,14 +1,59 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Compass, Calendar, Info, User, Star, MapPin, ChevronLeft, Waves, Palmtree, Clock, ShieldCheck, Camera, ChevronRight } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+
+
+import cloud_img1 from './images/cloud9/img1.JPG';
+import cloud_img2 from './images/cloud9/img2.PNG';  
+import cloud_img3 from './images/cloud9/img3.PNG';
+
+import coconut_img1 from './images/coconut/img1.JPG';
+import coconut_img2 from './images/coconut/img2.PNG';
+import coconut_img3 from './images/coconut/img3.PNG';
+
+import pacifico_img1 from './images/pacifico/img1.JPG';
+import pacifico_img2 from './images/pacifico/img2.JPG';
+import pacifico_img3 from './images/pacifico/img3.JPG';
+
+import sugba_img1 from './images/sugba_lagoon/img1.jpeg';
+import sugba_img2 from './images/sugba_lagoon/img2.jpeg';
+import sugba_img3 from './images/sugba_lagoon/img3.jpeg';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
 
-   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoginView, setIsLoginView] = useState(true);
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
+
+  const [bookings, setBookings] = useState(() => {
+    const saved = localStorage.getItem('siargao_bookings');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  // Function to save a new booking
+  const handleBook = (spotName) => {
+    if (!isLoggedIn) {
+      setActiveTab('profile'); // Redirect to login if not logged in
+      return;
+    }
+
+    const newBooking = {
+      id: Date.now(),
+      spot: spotName,
+      date: new Date().toLocaleDateString(),
+      status: 'Confirmed',
+      user: formData.username
+    };
+
+    const updatedBookings = [newBooking, ...bookings];
+    setBookings(updatedBookings);
+    localStorage.setItem('siargao_bookings', JSON.stringify(updatedBookings));
+    
+    alert(`Success! ${spotName} has been added to your profile.`);
+  };
 
   // Handle Input Changes
   const handleInput = (e) => {
@@ -53,24 +98,25 @@ export default function App() {
       >
         {(() => {
           switch (activeTab) {
-            case 'home': return <HomeView />;
+            case 'home': return <HomeView onBook={handleBook} />;
             case 'explore': return <ExploreView />;
             case 'booking': return <BookingView />;
             case 'info': return <InfoView />;
             case 'profile': 
-              return (
-                <ProfileView 
-                  isLoggedIn={isLoggedIn} 
-                  setIsLoggedIn={setIsLoggedIn}
-                  isLoginView={isLoginView}
-                  setIsLoginView={setIsLoginView}
-                  formData={formData}
-                  handleInput={handleInput}
-                  handleAuth={handleAuth}
-                  error={error}
-                />
-              );
-            default: return <HomeView />;
+            return (
+              <ProfileView 
+                isLoggedIn={isLoggedIn} 
+                setIsLoggedIn={setIsLoggedIn}
+                isLoginView={isLoginView}
+                setIsLoginView={setIsLoginView}
+                formData={formData}
+                handleInput={handleInput}
+                handleAuth={handleAuth}
+                error={error}
+                bookings={bookings} // Also ensure bookings are passed here
+              />
+            );
+          default: return <HomeView onBook={handleBook} />;
           }
         })()}
       </motion.div>
@@ -107,8 +153,10 @@ export default function App() {
 }
 
 // 1. EXPLORE PAGE
-const HomeView = () => {
+const HomeView = ({ onBook }) => {
   const [selectedSpot, setSelectedSpot] = useState(null);
+  const [newReview, setNewReview] = useState('');
+  const [reviews, setReviews] = useState({});
 
   const spotData = {
     'Cloud 9': {
@@ -117,7 +165,13 @@ const HomeView = () => {
       fullInfo: 'Cloud 9 in Siargao Island is the country’s most famous surfing spot, known for its powerful, hollow waves and iconic wooden boardwalk. Located in General Luna, it attracts surfers from around the world and is often considered one of the best surf breaks in the Philippines. Beyond surfing, Cloud 9 is also a popular tourist destination, loved for its scenic ocean views, vibrant island vibe, and breathtaking sunrise and sunset moments.',
       bestTime: 'High Tide',
       difficulty: 'Expert',
-      amenities: ['Viewing Deck', 'Surf Rentals', 'Cafes']
+      amenities: ['Viewing Deck', 'Surf Rentals', 'Cafes'],
+      gallery: [cloud_img1, cloud_img2, cloud_img3],
+      coordinates: [9.8123, 126.1634],
+      reviews: [
+        { user: 'SurfLover', comment: 'Best waves in the PH!', rating: 5 },
+        { user: 'Traveler_01', comment: 'Crowded but worth it.', rating: 4 }
+      ]
     },
     'Coconut View': {
       tag: 'Sightseeing',
@@ -125,7 +179,13 @@ const HomeView = () => {
       fullInfo: 'Known as the "Top View," this spot offers a panoramic look at thousands of coconut trees stretching toward the horizon. It is a must-stop for photos when heading North.',
       bestTime: 'Sunrise',
       difficulty: 'Easy',
-      amenities: ['Photo Spot', 'Roadside Parking', 'Local Vendors']
+      amenities: ['Photo Spot', 'Roadside Parking', 'Local Vendors'],
+      gallery: [coconut_img1, coconut_img2, coconut_img3],
+      coordinates: [9.8833, 126.1167],
+      reviews: [
+        { user: 'SurfLover', comment: 'Best waves in the PH!', rating: 5 },
+        { user: 'Traveler_01', comment: 'Crowded but worth it.', rating: 4 }
+      ]
     },
     'Pacifico': {
       tag: 'Northern Surf',
@@ -133,7 +193,13 @@ const HomeView = () => {
       fullInfo: 'Pacifico in Siargao is a quiet coastal village known for its strong waves making it a great spot for surfing especially for more experienced surfers. Unlike the busy areas of General Luna Pacifico offers a more peaceful and laid back vibe with long stretches of uncrowded beaches coconut lined shores and a relaxing island atmosphere 🌊🌴',
       bestTime: 'Mid-Tide',
       difficulty: 'Advanced',
-      amenities: ['Quiet Beach', 'Surf Camps', 'Local Eateries']
+      amenities: ['Quiet Beach', 'Surf Camps', 'Local Eateries'],
+      gallery: [pacifico_img1, pacifico_img2, pacifico_img3],
+      coordinates: [9.9667, 126.1000],
+      reviews: [
+        { user: 'SurfLover', comment: 'Best waves in the PH!', rating: 5 },
+        { user: 'Traveler_01', comment: 'Crowded but worth it.', rating: 4 }
+      ]
     },
     'Sugba Lagoon': {
       tag: 'Adventure',
@@ -141,8 +207,27 @@ const HomeView = () => {
       fullInfo: 'Sugba Lagoon is a beautiful, quiet lagoon in Siargao Island, known for its clear emerald-green water and peaceful surroundings. Surrounded by lush mangroves and limestone hills, it’s perfect for swimming, kayaking, paddleboarding, and relaxing in nature. 🌿💚',
       bestTime: 'Morning',
       difficulty: 'Easy',
-      amenities: ['Kayak Rental', 'Diving Board', 'Tour Boat']
+      amenities: ['Kayak Rental', 'Diving Board', 'Tour Boat'],
+      gallery: [sugba_img1, sugba_img2, sugba_img3],
+      coordinates: [9.8833, 126.0333],
+      reviews: [
+        { user: 'SurfLover', comment: 'Best waves in the PH!', rating: 5 },
+        { user: 'Traveler_01', comment: 'Crowded but worth it.', rating: 4 }
+      ]
     }
+  };
+
+  const handleAddReview = (spotName) => {
+    if (!newReview.trim()) return;
+
+    const reviewObj = { user: "Guest", comment: newReview, rating: 5 };
+    
+    setReviews(prev => ({
+      ...prev,
+      [spotName]: [reviewObj, ...(prev[spotName] || spotData[spotName].initialReviews || [])]
+    }));
+    
+    setNewReview('');
   };
 
   return (
@@ -196,71 +281,105 @@ const HomeView = () => {
       <AnimatePresence>
         {selectedSpot && (
           <motion.div 
-            initial={{ y: "100%" }} 
-            animate={{ y: 0 }} 
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
             className="fixed inset-0 z-[100] bg-white overflow-y-auto"
           >
+            {/* Header */}
             <div className="sticky top-0 p-6 flex justify-between items-center bg-white/90 backdrop-blur-md z-10">
-              <motion.button 
-                whileTap={{ scale: 0.85 }}
-                onClick={() => setSelectedSpot(null)} 
-                className="p-3 bg-slate-100 rounded-2xl text-slate-800"
-              >
-                <ChevronLeft size={24} />
-              </motion.button>
-              <h4 className="font-black text-emerald-950 uppercase text-xs tracking-widest font-sans">Details</h4>
+              <button onClick={() => setSelectedSpot(null)} className="p-3 bg-slate-100 rounded-2xl"><ChevronLeft size={24}/></button>
+              <h4 className="font-black text-emerald-950 uppercase text-xs tracking-widest">Details</h4>
               <div className="w-12 h-12" /> 
             </div>
 
-            <div className="px-6 pb-12">
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="h-64 bg-emerald-600 rounded-[2.5rem] mb-8 flex items-center justify-center text-white/20"
-              >
-                {selectedSpot.name === 'Coconut View' ? <Palmtree size={100} /> : <Waves size={100} />}
-              </motion.div>
+            <div className="px-6 pb-12 space-y-8">
 
-              <h2 className="text-4xl font-black text-emerald-950 tracking-tighter">{selectedSpot.name}</h2>
-              <p className="text-emerald-500 font-black uppercase text-xs mt-1 tracking-widest">{selectedSpot.tag}</p>
+              {/* OVERVIEW & HIGHLIGHTS */}
+              <div>
+                <h2 className="text-4xl font-black text-emerald-950 tracking-tighter">{selectedSpot.name}</h2>
+                <p className="text-slate-500 text-sm mt-4 leading-relaxed">{selectedSpot.fullInfo}</p>
+              </div>
 
-              <div className="grid grid-cols-2 gap-4 my-8">
-                <div className="p-4 bg-emerald-50 rounded-2xl">
-                  <Clock className="text-emerald-600 mb-1" size={18} />
-                  <p className="text-[10px] font-bold text-emerald-600 uppercase">Best Time</p>
-                  <p className="text-xs font-black text-emerald-900">{selectedSpot.bestTime}</p>
-                </div>
-                <div className="p-4 bg-slate-50 rounded-2xl">
-                  <ShieldCheck className="text-slate-400 mb-1" size={18} />
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Difficulty</p>
-                  <p className="text-xs font-black text-slate-700">{selectedSpot.difficulty}</p>
+               {/* GALLERY SECTION */}
+              <div>
+                <h5 className="font-black text-emerald-950 text-lg mb-4">Gallery</h5>
+                <div className="flex gap-3 overflow-x-auto scrollbar-hide">
+                  {selectedSpot.gallery?.map((img, idx) => (
+                    <img 
+                      key={idx} 
+                      src={img} 
+                      className="w-48 h-32 object-cover rounded-3xl bg-emerald-50 shrink-0" 
+                      alt="Gallery" 
+                    />
+                  ))}
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <h5 className="font-black text-emerald-950 text-lg mb-2 underline decoration-emerald-200 underline-offset-4">Overview</h5>
-                  <p className="text-slate-500 text-sm leading-relaxed font-medium">{selectedSpot.fullInfo}</p>
+              {/* LOCATION SECTION */}
+              <div>
+                <h5 className="font-black text-emerald-950 text-lg mb-4">Location</h5>
+                <div className="h-64 w-full rounded-[2.5rem] overflow-hidden shadow-inner border-4 border-emerald-50 z-0 relative">
+                  <MapContainer 
+                    center={selectedSpot.coordinates} 
+                    zoom={13} 
+                    scrollWheelZoom={false} 
+                    style={{ height: '100%', width: '100%' }}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <Marker position={selectedSpot.coordinates}>
+                      <Popup>
+                        <span className="font-bold text-emerald-900">{selectedSpot.name}</span>
+                      </Popup>
+                    </Marker>
+                  </MapContainer>
                 </div>
-                <div>
-                  <h5 className="font-black text-emerald-950 text-lg mb-3">Highlights</h5>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedSpot.amenities.map(item => (
-                      <span key={item} className="px-4 py-2 bg-emerald-50 border border-emerald-100 rounded-xl text-[11px] font-bold text-emerald-700">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
+              </div>
+
+
+
+              {/* REVIEW SECTION */}
+              <div className="pt-6 border-t border-slate-100">
+                <h5 className="font-black text-emerald-950 text-lg mb-4">Community Reviews</h5>
+                
+                {/* Review Input */}
+                <div className="mb-6 space-y-3">
+                  <textarea 
+                    value={newReview}
+                    onChange={(e) => setNewReview(e.target.value)}
+                    placeholder="Share your experience..."
+                    className="w-full p-4 bg-slate-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                    rows="2"
+                  />
+                  <button 
+                    onClick={() => handleAddReview(selectedSpot.name)} // Add the name here
+                    className="px-6 py-3 bg-emerald-600 text-white text-xs font-black rounded-xl"
+                  >
+                    Post Review
+                  </button>
+                </div>
+
+                {/* Reviews List */}
+                <div className="space-y-4">
+                  {selectedSpot.reviews?.map((rev, i) => (
+                    <div key={i} className="p-4 bg-slate-50 rounded-2xl">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-black text-xs text-emerald-900">{rev.user}</span>
+                        <div className="flex gap-0.5"><Star size={10} fill="#10b981" className="text-emerald-500"/></div>
+                      </div>
+                      <p className="text-xs text-slate-500 font-medium">{rev.comment}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               <motion.button 
                 whileTap={{ scale: 0.95 }}
-                className="w-full mt-10 py-5 bg-emerald-950 text-white rounded-[2rem] font-black shadow-xl shadow-emerald-900/20"
+                onClick={() => onBook(selectedSpot.name)} // Trigger the booking
+                className="w-full py-5 bg-emerald-950 text-white rounded-[2rem] font-black shadow-xl mt-6"
               >
-                Show More Info
+                Book This Trip Now
               </motion.button>
             </div>
           </motion.div>
@@ -361,16 +480,25 @@ const ProfileView = ({
   formData, 
   handleInput, 
   handleAuth, 
-  error 
+  error,
+  bookings = [] // Default to empty array if not passed
 }) => {
- 
+
+  // Function to remove a booking (Optional but great for your thesis)
+  const cancelBooking = (id) => {
+    const existing = JSON.parse(localStorage.getItem('siargao_bookings') || '[]');
+    const filtered = existing.filter(b => b.id !== id);
+    localStorage.setItem('siargao_bookings', JSON.stringify(filtered));
+    window.location.reload(); // Simple way to refresh the local state for now
+  };
+
   // 1. AUTHENTICATED PROFILE VIEW
   if (isLoggedIn) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6 space-y-8">
+        {/* User Header */}
         <div className="flex flex-col items-center">
           <motion.div 
-            whileHover={{ rotate: 0 }}
             initial={{ rotate: 10, scale: 0.8 }}
             animate={{ rotate: 6, scale: 1 }}
             className="w-28 h-28 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-[2.5rem] flex items-center justify-center text-white border-4 border-white shadow-xl"
@@ -381,22 +509,70 @@ const ProfileView = ({
           <p className="text-emerald-500 font-bold text-xs uppercase tracking-widest">Island Hopper</p>
         </div>
         
+        {/* Quick Stats */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-emerald-600 p-6 rounded-[2rem] text-white shadow-lg shadow-emerald-200">
-            <p className="text-[10px] font-bold opacity-70 uppercase">Saved Waves</p>
-            <p className="text-2xl font-black">08</p>
+            <p className="text-[10px] font-bold opacity-70 uppercase">Total Bookings</p>
+            <p className="text-2xl font-black">{bookings.length < 10 ? `0${bookings.length}` : bookings.length}</p>
           </div>
           <div className="bg-white p-6 rounded-[2rem] border border-emerald-50 shadow-sm">
-            <p className="text-[10px] font-black text-slate-400 uppercase">Rewards</p>
-            <p className="text-2xl font-black text-emerald-900">450 <span className="text-xs">pts</span></p>
+            <p className="text-[10px] font-black text-slate-400 uppercase">Island Points</p>
+            <p className="text-2xl font-black text-emerald-900">{bookings.length * 50} <span className="text-xs">pts</span></p>
+          </div>
+        </div>
+
+        {/* BOOKINGS LIST SECTION */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center px-1">
+            <h4 className="font-black text-emerald-950 text-sm uppercase tracking-wider">My Trip Records</h4>
+            <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-md uppercase">Local Storage</span>
+          </div>
+          
+          <div className="space-y-3">
+            {bookings.length === 0 ? (
+              <div className="p-10 text-center bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
+                <p className="text-xs text-slate-400 font-bold italic">You haven't booked any trips to the Pacific yet.</p>
+              </div>
+            ) : (
+              bookings.map((trip) => (
+                <motion.div 
+                  key={trip.id}
+                  initial={{ x: -20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  className="p-5 bg-white rounded-3xl border border-emerald-50 shadow-sm flex justify-between items-center group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                      <MapPin size={20} />
+                    </div>
+                    <div>
+                      <p className="font-black text-base text-emerald-950 leading-tight">{trip.spot}</p>
+                      <p className="text-[11px] text-slate-400 font-bold mt-0.5">{trip.date}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col items-end gap-2">
+                    <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-[9px] font-black rounded-full uppercase tracking-tighter">
+                      {trip.status || 'Confirmed'}
+                    </span>
+                    <button 
+                      onClick={() => cancelBooking(trip.id)}
+                      className="text-[9px] font-black text-red-300 uppercase hover:text-red-500 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
         </div>
 
         <button 
           onClick={() => setIsLoggedIn(false)}
-          className="w-full py-4 text-slate-400 font-bold text-sm"
+          className="w-full py-4 text-slate-400 font-bold text-xs uppercase tracking-widest hover:text-emerald-600 transition-colors"
         >
-          Logout
+          Sign Out of SiargaoGo
         </button>
       </motion.div>
     );
@@ -406,8 +582,11 @@ const ProfileView = ({
   return (
     <div className="p-8 flex flex-col min-h-[60vh] justify-center">
       <div className="mb-10 text-center">
+        <div className="inline-block p-4 bg-emerald-50 rounded-3xl mb-4">
+          <ShieldCheck className="text-emerald-600" size={32} />
+        </div>
         <h3 className="text-3xl font-black text-emerald-950">{isLoginView ? 'Welcome Back' : 'Join the Tribe'}</h3>
-        <p className="text-slate-400 text-sm mt-2">Start your Siargao adventure</p>
+        <p className="text-slate-400 text-sm mt-2">Access your personalized DMS dashboard</p>
       </div>
 
       <form onSubmit={handleAuth} className="space-y-4">
@@ -432,22 +611,22 @@ const ProfileView = ({
           />
         </div>
         
-        {error && <p className="text-red-500 text-[10px] font-bold uppercase text-center">{error}</p>}
+        {error && <p className="text-red-500 text-[10px] font-bold uppercase text-center bg-red-50 py-2 rounded-lg">{error}</p>}
 
         <motion.button 
           whileTap={{ scale: 0.95 }}
           type="submit"
           className="w-full py-4 bg-emerald-950 text-white rounded-2xl font-black shadow-xl shadow-emerald-900/20 mt-4"
         >
-          {isLoginView ? 'Login' : 'Create Account'}
+          {isLoginView ? 'Login to Dashboard' : 'Register Account'}
         </motion.button>
       </form>
 
       <button 
         onClick={() => { setIsLoginView(!isLoginView); setError(''); }}
-        className="mt-8 text-xs font-bold text-emerald-600 uppercase tracking-widest text-center"
+        className="mt-8 text-[10px] font-bold text-emerald-600 uppercase tracking-[0.2em] text-center"
       >
-        {isLoginView ? "Don't have an account? Sign Up" : "Already a member? Login"}
+        {isLoginView ? "New to the island? Sign Up" : "Already have an account? Login"}
       </button>
     </div>
   );
