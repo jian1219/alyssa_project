@@ -5,6 +5,43 @@ import { Home, Compass, Calendar, Info, User, Star, MapPin, ChevronLeft, Waves, 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
 
+   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoginView, setIsLoginView] = useState(true);
+  const [formData, setFormData] = useState({ username: '', password: '' });
+  const [error, setError] = useState('');
+
+  // Handle Input Changes
+  const handleInput = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Auth Logic using LocalStorage
+  const handleAuth = (e) => {
+    e.preventDefault();
+    const users = JSON.parse(localStorage.getItem('siargao_users') || '[]');
+
+    if (isLoginView) {
+      // Login Logic
+      const user = users.find(u => u.username === formData.username && u.password === formData.password);
+      if (user) {
+        setIsLoggedIn(true);
+        setError('');
+      } else {
+        setError('Invalid credentials');
+      }
+    } else {
+      // Signup Logic
+      if (users.find(u => u.username === formData.username)) {
+        setError('User already exists');
+      } else {
+        users.push(formData);
+        localStorage.setItem('siargao_users', JSON.stringify(users));
+        setIsLoggedIn(true);
+        setError('');
+      }
+    }
+  };
+
   const renderPage = () => {
     return (
       <motion.div
@@ -20,7 +57,19 @@ export default function App() {
             case 'explore': return <ExploreView />;
             case 'booking': return <BookingView />;
             case 'info': return <InfoView />;
-            case 'profile': return <ProfileView />;
+            case 'profile': 
+              return (
+                <ProfileView 
+                  isLoggedIn={isLoggedIn} 
+                  setIsLoggedIn={setIsLoggedIn}
+                  isLoginView={isLoginView}
+                  setIsLoginView={setIsLoginView}
+                  formData={formData}
+                  handleInput={handleInput}
+                  handleAuth={handleAuth}
+                  error={error}
+                />
+              );
             default: return <HomeView />;
           }
         })()}
@@ -57,6 +106,7 @@ export default function App() {
   );
 }
 
+// 1. EXPLORE PAGE
 const HomeView = () => {
   const [selectedSpot, setSelectedSpot] = useState(null);
 
@@ -64,7 +114,7 @@ const HomeView = () => {
     'Cloud 9': {
       tag: 'Surfing',
       desc: 'The legendary hollow peak of Siargao.',
-      fullInfo: 'Cloud 9 is world-famous for its thick, hollow tubes. It hosts the annual Siargao Surfing Cup. The boardwalk is an iconic landmark perfect for sunsets.',
+      fullInfo: 'Cloud 9 in Siargao Island is the country’s most famous surfing spot, known for its powerful, hollow waves and iconic wooden boardwalk. Located in General Luna, it attracts surfers from around the world and is often considered one of the best surf breaks in the Philippines. Beyond surfing, Cloud 9 is also a popular tourist destination, loved for its scenic ocean views, vibrant island vibe, and breathtaking sunrise and sunset moments.',
       bestTime: 'High Tide',
       difficulty: 'Expert',
       amenities: ['Viewing Deck', 'Surf Rentals', 'Cafes']
@@ -80,7 +130,7 @@ const HomeView = () => {
     'Pacifico': {
       tag: 'Northern Surf',
       desc: 'Quiet, long left-hand waves for a peaceful surf session.',
-      fullInfo: 'Located in the North, Pacifico offers a much more relaxed vibe than General Luna. The waves are powerful and long, ideal for those who want to escape the crowds.',
+      fullInfo: 'Pacifico in Siargao is a quiet coastal village known for its strong waves making it a great spot for surfing especially for more experienced surfers. Unlike the busy areas of General Luna Pacifico offers a more peaceful and laid back vibe with long stretches of uncrowded beaches coconut lined shores and a relaxing island atmosphere 🌊🌴',
       bestTime: 'Mid-Tide',
       difficulty: 'Advanced',
       amenities: ['Quiet Beach', 'Surf Camps', 'Local Eateries']
@@ -88,7 +138,7 @@ const HomeView = () => {
     'Sugba Lagoon': {
       tag: 'Adventure',
       desc: 'Turquoise waters hidden within limestone hills.',
-      fullInfo: 'A vast sanctuary where you can paddleboard, kayak, and jump off the famous diving board. Surrounded by mangroves and limestone mountains.',
+      fullInfo: 'Sugba Lagoon is a beautiful, quiet lagoon in Siargao Island, known for its clear emerald-green water and peaceful surroundings. Surrounded by lush mangroves and limestone hills, it’s perfect for swimming, kayaking, paddleboarding, and relaxing in nature. 🌿💚',
       bestTime: 'Morning',
       difficulty: 'Easy',
       amenities: ['Kayak Rental', 'Diving Board', 'Tour Boat']
@@ -303,31 +353,105 @@ const InfoView = () => (
 );
 
 // 5. PROFILE PAGE
-const ProfileView = () => (
-  <div className="p-6 space-y-8">
-    <div className="flex flex-col items-center">
-      <motion.div 
-        whileHover={{ rotate: 0 }}
-        initial={{ rotate: 10, scale: 0.8 }}
-        animate={{ rotate: 6, scale: 1 }}
-        className="w-28 h-28 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-[2.5rem] flex items-center justify-center text-white border-4 border-white shadow-xl"
-      >
-        <User size={48} strokeWidth={1.5} />
+const ProfileView = ({ 
+  isLoggedIn, 
+  setIsLoggedIn, 
+  isLoginView, 
+  setIsLoginView, 
+  formData, 
+  handleInput, 
+  handleAuth, 
+  error 
+}) => {
+ 
+  // 1. AUTHENTICATED PROFILE VIEW
+  if (isLoggedIn) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-6 space-y-8">
+        <div className="flex flex-col items-center">
+          <motion.div 
+            whileHover={{ rotate: 0 }}
+            initial={{ rotate: 10, scale: 0.8 }}
+            animate={{ rotate: 6, scale: 1 }}
+            className="w-28 h-28 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-[2.5rem] flex items-center justify-center text-white border-4 border-white shadow-xl"
+          >
+            <User size={48} strokeWidth={1.5} />
+          </motion.div>
+          <h3 className="font-black text-2xl text-emerald-950 mt-6">{formData.username}</h3>
+          <p className="text-emerald-500 font-bold text-xs uppercase tracking-widest">Island Hopper</p>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-emerald-600 p-6 rounded-[2rem] text-white shadow-lg shadow-emerald-200">
+            <p className="text-[10px] font-bold opacity-70 uppercase">Saved Waves</p>
+            <p className="text-2xl font-black">08</p>
+          </div>
+          <div className="bg-white p-6 rounded-[2rem] border border-emerald-50 shadow-sm">
+            <p className="text-[10px] font-black text-slate-400 uppercase">Rewards</p>
+            <p className="text-2xl font-black text-emerald-900">450 <span className="text-xs">pts</span></p>
+          </div>
+        </div>
+
+        <button 
+          onClick={() => setIsLoggedIn(false)}
+          className="w-full py-4 text-slate-400 font-bold text-sm"
+        >
+          Logout
+        </button>
       </motion.div>
-      <h3 className="font-black text-2xl text-emerald-950 mt-6">Island Hopper</h3>
-    </div>
-    <div className="grid grid-cols-2 gap-4">
-      <div className="bg-emerald-600 p-6 rounded-[2rem] text-white">
-        <p className="text-[10px] font-bold opacity-70 uppercase">Saved Waves</p>
-        <p className="text-2xl font-black">08</p>
+    );
+  }
+
+  // 2. LOGIN / SIGNUP FORM VIEW
+  return (
+    <div className="p-8 flex flex-col min-h-[60vh] justify-center">
+      <div className="mb-10 text-center">
+        <h3 className="text-3xl font-black text-emerald-950">{isLoginView ? 'Welcome Back' : 'Join the Tribe'}</h3>
+        <p className="text-slate-400 text-sm mt-2">Start your Siargao adventure</p>
       </div>
-      <div className="bg-white p-6 rounded-[2rem] border border-emerald-50 shadow-sm">
-        <p className="text-[10px] font-black text-slate-400 uppercase">Rewards</p>
-        <p className="text-2xl font-black text-emerald-900">450 <span className="text-xs">pts</span></p>
-      </div>
+
+      <form onSubmit={handleAuth} className="space-y-4">
+        <div className="space-y-1">
+          <input 
+            type="text" 
+            name="username"
+            placeholder="Username" 
+            required
+            className="w-full p-4 bg-white rounded-2xl border border-emerald-50 shadow-sm text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+            onChange={handleInput}
+          />
+        </div>
+        <div className="space-y-1">
+          <input 
+            type="password" 
+            name="password"
+            placeholder="Password" 
+            required
+            className="w-full p-4 bg-white rounded-2xl border border-emerald-50 shadow-sm text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+            onChange={handleInput}
+          />
+        </div>
+        
+        {error && <p className="text-red-500 text-[10px] font-bold uppercase text-center">{error}</p>}
+
+        <motion.button 
+          whileTap={{ scale: 0.95 }}
+          type="submit"
+          className="w-full py-4 bg-emerald-950 text-white rounded-2xl font-black shadow-xl shadow-emerald-900/20 mt-4"
+        >
+          {isLoginView ? 'Login' : 'Create Account'}
+        </motion.button>
+      </form>
+
+      <button 
+        onClick={() => { setIsLoginView(!isLoginView); setError(''); }}
+        className="mt-8 text-xs font-bold text-emerald-600 uppercase tracking-widest text-center"
+      >
+        {isLoginView ? "Don't have an account? Sign Up" : "Already a member? Login"}
+      </button>
     </div>
-  </div>
-);
+  );
+};
 
 // NAVIGATION HELPER
 function NavItem({ active, onClick, icon, label }) {
